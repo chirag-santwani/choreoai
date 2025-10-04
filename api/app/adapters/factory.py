@@ -1,4 +1,3 @@
-from typing import Optional
 from app.adapters.base import BaseAdapter
 from app.adapters.openai_adapter import OpenAIAdapter
 from app.adapters.claude_adapter import ClaudeAdapter
@@ -15,7 +14,7 @@ class AdapterFactory:
     """
 
     @staticmethod
-    def get_adapter(provider: str) -> Optional[BaseAdapter]:
+    def get_adapter(provider: str) -> BaseAdapter:
         """
         Get the appropriate adapter for the given provider.
 
@@ -24,30 +23,48 @@ class AdapterFactory:
 
         Returns:
             Initialized adapter instance
+
+        Raises:
+            ValueError: If provider is not supported or API key is missing
         """
-        adapters = {
-            "openai": lambda: OpenAIAdapter(api_key=settings.OPENAI_API_KEY),
-            "claude": lambda: ClaudeAdapter(api_key=settings.ANTHROPIC_API_KEY),
-            "azure": lambda: AzureAdapter(
+        provider_lower = provider.lower()
+
+        if provider_lower == "openai":
+            if not settings.OPENAI_API_KEY:
+                raise ValueError("OPENAI_API_KEY not configured")
+            return OpenAIAdapter(api_key=settings.OPENAI_API_KEY)
+        elif provider_lower == "claude":
+            if not settings.ANTHROPIC_API_KEY:
+                raise ValueError("ANTHROPIC_API_KEY not configured")
+            return ClaudeAdapter(api_key=settings.ANTHROPIC_API_KEY)
+        elif provider_lower == "azure":
+            if not settings.AZURE_OPENAI_API_KEY or not settings.AZURE_OPENAI_ENDPOINT:
+                raise ValueError("Azure OpenAI credentials not configured")
+            return AzureAdapter(
                 api_key=settings.AZURE_OPENAI_API_KEY,
                 endpoint=settings.AZURE_OPENAI_ENDPOINT
-            ),
-            "bedrock": lambda: BedrockAdapter(
+            )
+        elif provider_lower == "bedrock":
+            if not settings.AWS_ACCESS_KEY_ID or not settings.AWS_SECRET_ACCESS_KEY:
+                raise ValueError("AWS credentials not configured")
+            return BedrockAdapter(
                 aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
                 aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
                 region=settings.AWS_REGION
-            ),
-            "gemini": lambda: GeminiAdapter(api_key=settings.GEMINI_API_KEY),
-            "grok": lambda: GrokAdapter(api_key=settings.GROK_API_KEY),
-        }
-
-        adapter_creator = adapters.get(provider.lower())
-        if adapter_creator:
-            return adapter_creator()
-        return None
+            )
+        elif provider_lower == "gemini":
+            if not settings.GEMINI_API_KEY:
+                raise ValueError("GEMINI_API_KEY not configured")
+            return GeminiAdapter(api_key=settings.GEMINI_API_KEY)
+        elif provider_lower == "grok":
+            if not settings.GROK_API_KEY:
+                raise ValueError("GROK_API_KEY not configured")
+            return GrokAdapter(api_key=settings.GROK_API_KEY)
+        else:
+            raise ValueError(f"Unsupported provider: {provider}")
 
     @staticmethod
-    def get_adapter_for_model(model: str) -> Optional[BaseAdapter]:
+    def get_adapter_for_model(model: str) -> BaseAdapter:
         """
         Get the appropriate adapter based on the model name.
 
@@ -56,10 +73,13 @@ class AdapterFactory:
 
         Returns:
             Initialized adapter instance
+
+        Raises:
+            ValueError: If model is not recognized or supported
         """
         model_lower = model.lower()
 
-        if model_lower.startswith("gpt-"):
+        if model_lower.startswith("gpt-") or model_lower.startswith("o1-") or model_lower.startswith("text-embedding-"):
             return AdapterFactory.get_adapter("openai")
         elif model_lower.startswith("claude-"):
             return AdapterFactory.get_adapter("claude")
@@ -68,4 +88,4 @@ class AdapterFactory:
         elif model_lower.startswith("grok-"):
             return AdapterFactory.get_adapter("grok")
         else:
-            return None
+            raise ValueError(f"Unknown model: {model}. Model must start with a recognized provider prefix (gpt-, claude-, gemini-, grok-, etc.)")
