@@ -1,5 +1,7 @@
 from typing import Dict, Any, AsyncIterator
 from app.adapters.base import BaseAdapter
+from openai import AsyncOpenAI
+import json
 
 
 class OpenAIAdapter(BaseAdapter):
@@ -7,37 +9,51 @@ class OpenAIAdapter(BaseAdapter):
     Adapter for OpenAI API.
     """
 
+    def __init__(self, api_key: str, **kwargs):
+        super().__init__(api_key, **kwargs)
+        self.client = AsyncOpenAI(api_key=api_key)
+
     async def chat_completion(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """
         Create a chat completion using OpenAI API.
         """
-        # TODO: Implement OpenAI chat completion
-        raise NotImplementedError("OpenAI chat completion not yet implemented")
+        try:
+            response = await self.client.chat.completions.create(**request)
+            return response.model_dump()
+        except Exception as e:
+            raise Exception(f"OpenAI API error: {str(e)}")
 
     async def chat_completion_stream(self, request: Dict[str, Any]) -> AsyncIterator[Dict[str, Any]]:
         """
         Create a streaming chat completion using OpenAI API.
         """
-        # TODO: Implement OpenAI streaming chat completion
-        raise NotImplementedError("OpenAI streaming not yet implemented")
-        yield {}
+        try:
+            # Ensure stream is set to True (remove it from request if present)
+            request_copy = request.copy()
+            request_copy["stream"] = True
+
+            stream = await self.client.chat.completions.create(**request_copy)
+            async for chunk in stream:
+                yield chunk.model_dump()
+        except Exception as e:
+            raise Exception(f"OpenAI streaming error: {str(e)}")
 
     async def create_embedding(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """
         Create embeddings using OpenAI API.
         """
-        # TODO: Implement OpenAI embeddings
-        raise NotImplementedError("OpenAI embeddings not yet implemented")
+        try:
+            response = await self.client.embeddings.create(**request)
+            return response.model_dump()
+        except Exception as e:
+            raise Exception(f"OpenAI embeddings error: {str(e)}")
 
-    def list_models(self) -> Dict[str, Any]:
+    async def list_models(self) -> Dict[str, Any]:
         """
-        List available OpenAI models.
+        List available OpenAI models from the API.
         """
-        return {
-            "object": "list",
-            "data": [
-                {"id": "gpt-4", "object": "model", "owned_by": "openai"},
-                {"id": "gpt-4-turbo", "object": "model", "owned_by": "openai"},
-                {"id": "gpt-3.5-turbo", "object": "model", "owned_by": "openai"},
-            ]
-        }
+        try:
+            response = await self.client.models.list()
+            return response.model_dump()
+        except Exception as e:
+            raise Exception(f"OpenAI list models error: {str(e)}")
