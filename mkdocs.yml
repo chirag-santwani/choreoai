@@ -1,0 +1,102 @@
+site_name: ChoreoAI Documentation
+site_description: Universal Python client for LLM APIs with OpenAI-compatible interface
+site_author: ChoreoAI Team
+site_url: https://choreoai.github.io/choreoai/
+
+repo_name: choreoai/choreoai
+repo_url: https://github.com/choreoai/choreoai
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+  icon:
+    repo: fontawesome/brands/github
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/choreoai/choreoai
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/choreoai/
+
+plugins:
+  - search
+  - awesome-pages
+
+markdown_extensions:
+  - admonition
+  - codehilite:
+      guess_lang: false
+  - toc:
+      permalink: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - attr_list
+  - md_in_html
+  - def_list
+  - footnotes
+
+nav:
+  - Home: README.md
+  - Client Library:
+    - Overview: client/README.md
+    - Installation: client/installation.md
+    - Quick Start: client/quickstart.md
+    - Chat Completions: client/chat.md
+    - Streaming: client/streaming.md
+    - Async Usage: client/async-usage.md
+  - API Reference:
+    - Overview: api/README.md
+    - Authentication: api/authentication.md
+    - Models: api/models.md
+    - Chat Completions: api/chat-completions.md
+    - Embeddings: api/embeddings.md
+    - Streaming: api/streaming.md
+    - Error Handling: api/error-handling.md
+  - Deployment:
+    - Overview: deployment/README.md
+
+extra_css:
+  - stylesheets/extra.css
+
+copyright: Copyright &copy; 2024 ChoreoAI Team
