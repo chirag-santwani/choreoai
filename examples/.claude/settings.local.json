@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/chirag/Documents/Development/choreoai/**)",
+      "Read(//Users/chirag/Documents/Development/choreoai/docs/**)",
+      "Read(//Users/chirag/Documents/Development/choreoai/client/choreoai/**)",
+      "Bash(cat:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
