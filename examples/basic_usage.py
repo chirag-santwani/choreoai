@@ -34,24 +34,6 @@ def main():
         base_url="http://localhost:8000/v1"  # Point to ChoreoAI
     )
 
-    # First, list available GPT models
-    print("📋 Listing available GPT models...")
-    print()
-
-    try:
-        models = client.models.list()
-        gpt_models = [model for model in models.data if model.id.startswith("gpt-")]
-
-        print(f"Found {len(gpt_models)} GPT models:")
-        print("-" * 60)
-        for model in gpt_models:
-            print(f"  • {model.id}")
-        print("-" * 60)
-        print()
-    except Exception as e:
-        print(f"⚠️  Could not list models: {e}")
-        print()
-
     print("📤 Sending request to ChoreoAI...")
     print()
 
