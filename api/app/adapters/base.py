@@ -52,7 +52,7 @@ class BaseAdapter(ABC):
         pass
 
     @abstractmethod
-    def list_models(self) -> Dict[str, Any]:
+    async def list_models(self) -> Dict[str, Any]:
         """
         List available models for this provider.
 

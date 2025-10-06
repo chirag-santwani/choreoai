@@ -29,6 +29,9 @@ wheels/
 .venv
 venv/
 
+# Keep example .env files
+!examples/.env.example
+
 # IDE
 .vscode/
 .idea/
