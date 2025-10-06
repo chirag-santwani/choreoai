@@ -3,11 +3,11 @@
 ChoreoAI Example: Basic Chat Completion
 
 This example demonstrates how to use the OpenAI SDK client with ChoreoAI
-for basic chat completions.
+for basic chat completions with multiple AI providers (OpenAI, Claude, etc.).
 
 Requirements:
 - Run: ./setup.sh (to create virtual environment and install dependencies)
-- Set OPENAI_API_KEY environment variable
+- Set OPENAI_API_KEY or ANTHROPIC_API_KEY environment variable
 - ChoreoAI server running on http://localhost:8000
 """
 
@@ -19,28 +19,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def main():
-    """Basic chat completion example."""
-
-    print("=" * 60)
-    print("ChoreoAI Example: Basic Chat Completion")
-    print("=" * 60)
+def test_model(client, model_name, provider_name):
+    """Test a specific model."""
+    print(f"📤 Testing {model_name}...")
     print()
 
-    # Initialize OpenAI client with ChoreoAI base URL
-    # This routes all requests through ChoreoAI instead of directly to OpenAI
-    client = OpenAI(
-        api_key=os.getenv("OPENAI_API_KEY"),
-        base_url="http://localhost:8000/v1"  # Point to ChoreoAI
-    )
-
-    print("📤 Sending request to ChoreoAI...")
-    print()
-
-    # Create a basic chat completion
     try:
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model=model_name,
             messages=[
                 {
                     "role": "system",
@@ -59,9 +45,7 @@ def main():
         message = response.choices[0].message.content
         usage = response.usage
 
-        print("✅ Response received!")
-        print()
-        print("💬 Assistant's response:")
+        print(f"✅ Response from {provider_name}:")
         print("-" * 60)
         print(message)
         print("-" * 60)
@@ -71,32 +55,69 @@ def main():
         print(f"  • Completion tokens: {usage.completion_tokens}")
         print(f"  • Total tokens: {usage.total_tokens}")
         print()
-
-        print("✓ Success! ChoreoAI is routing requests correctly.")
+        return True
 
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"❌ Error with {provider_name}: {e}")
         print()
-        print("Troubleshooting:")
-        print("  1. Make sure ChoreoAI is running: docker-compose up -d")
-        print("  2. Check that OPENAI_API_KEY is set: echo $OPENAI_API_KEY")
-        print("  3. Verify ChoreoAI is accessible: curl http://localhost:8000/health")
+        return False
+
+
+def main():
+    """Basic chat completion example."""
+
+    print("=" * 60)
+    print("ChoreoAI Example: Basic Chat Completion")
+    print("=" * 60)
+    print()
+
+    # Check which API keys are available
+    has_openai = bool(os.getenv("OPENAI_API_KEY"))
+    has_anthropic = bool(os.getenv("ANTHROPIC_API_KEY"))
+
+    if not has_openai and not has_anthropic:
+        print("❌ Error: No API keys configured")
+        print()
+        print("Please set at least one API key:")
+        print("  export OPENAI_API_KEY=sk-your-key-here")
+        print("  export ANTHROPIC_API_KEY=sk-ant-your-key-here")
+        print()
         return 1
 
-    print()
+    success_count = 0
+    total_tests = 0
+
+    # Test OpenAI if key is available
+    if has_openai:
+        print("🤖 Testing OpenAI GPT-3.5 Turbo")
+        print("=" * 60)
+        client = OpenAI(
+            api_key=os.getenv("OPENAI_API_KEY"),
+            base_url="http://localhost:8000/v1"
+        )
+        total_tests += 1
+        if test_model(client, "gpt-3.5-turbo", "OpenAI GPT-3.5 Turbo"):
+            success_count += 1
+
+    # Test Claude if key is available
+    if has_anthropic:
+        print("🧠 Testing Anthropic Claude 3 Haiku")
+        print("=" * 60)
+        client = OpenAI(
+            api_key=os.getenv("ANTHROPIC_API_KEY"),
+            base_url="http://localhost:8000/v1"
+        )
+        total_tests += 1
+        if test_model(client, "claude-3-haiku-20240307", "Anthropic Claude 3 Haiku"):
+            success_count += 1
+
+    # Summary
+    print("=" * 60)
+    print(f"✓ Tests completed: {success_count}/{total_tests} successful")
     print("=" * 60)
 
-    return 0
+    return 0 if success_count > 0 else 1
 
 
 if __name__ == "__main__":
-    # Check if API key is set
-    if not os.getenv("OPENAI_API_KEY"):
-        print("❌ Error: OPENAI_API_KEY environment variable not set")
-        print()
-        print("Please set your OpenAI API key:")
-        print("  export OPENAI_API_KEY=sk-your-key-here")
-        print()
-        exit(1)
-
     exit(main())
