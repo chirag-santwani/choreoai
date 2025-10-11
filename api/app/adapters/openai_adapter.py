@@ -43,7 +43,11 @@ class OpenAIAdapter(BaseAdapter):
         Create embeddings using OpenAI API.
         """
         try:
-            response = await self.client.embeddings.create(**request)
+            # Force float encoding format to ensure compatibility
+            request_copy = request.copy()
+            request_copy["encoding_format"] = "float"
+
+            response = await self.client.embeddings.create(**request_copy)
             return response.model_dump()
         except Exception as e:
             raise Exception(f"OpenAI embeddings error: {str(e)}")

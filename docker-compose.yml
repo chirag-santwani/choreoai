@@ -15,7 +15,7 @@ services:
       - PORT=8000
       - HOST=0.0.0.0
       - LOG_LEVEL=INFO
-      - ENVIRONMENT=production
+      - ENVIRONMENT=development
       - ALLOWED_ORIGINS=*
     restart: unless-stopped
     healthcheck:
