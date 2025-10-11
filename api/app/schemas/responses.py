@@ -10,7 +10,7 @@ class Choice(BaseModel):
 
 class Usage(BaseModel):
     prompt_tokens: int
-    completion_tokens: int
+    completion_tokens: Optional[int] = None
     total_tokens: int
 
 
