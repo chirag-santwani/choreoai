@@ -1,0 +1,118 @@
+# Prometheus Alert Rules for ChoreoAI
+
+groups:
+  - name: choreoai_alerts
+    interval: 30s
+    rules:
+      # High error rate alert
+      - alert: HighErrorRate
+        expr: |
+          (
+            rate(choreoai_errors_total[5m]) /
+            rate(choreoai_requests_total[5m])
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is above 5% for the last 5 minutes (current: {{ $value | humanizePercentage }})"
+
+      # Service down alert
+      - alert: ServiceDown
+        expr: up{job="choreoai"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "ChoreoAI service is down"
+          description: "The ChoreoAI API service has been down for more than 2 minutes"
+
+      # High latency alert (P95)
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95,
+            rate(choreoai_request_duration_seconds_bucket[5m])
+          ) > 5
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High request latency detected"
+          description: "P95 latency is above 5 seconds (current: {{ $value }}s)"
+
+      # High latency alert (P99)
+      - alert: VeryHighLatency
+        expr: |
+          histogram_quantile(0.99,
+            rate(choreoai_request_duration_seconds_bucket[5m])
+          ) > 10
+        for: 5m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "Very high request latency detected"
+          description: "P99 latency is above 10 seconds (current: {{ $value }}s)"
+
+      # Rate limit approaching
+      - alert: RateLimitApproaching
+        expr: rate(choreoai_requests_total[1m]) > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "Request rate approaching limits"
+          description: "Request rate is {{ $value }} requests/sec"
+
+      # High number of active connections
+      - alert: HighActiveConnections
+        expr: choreoai_active_connections > 100
+        for: 10m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High number of active connections"
+          description: "Currently {{ $value }} active connections"
+
+      # Provider-specific error rate
+      - alert: ProviderHighErrorRate
+        expr: |
+          (
+            sum by (provider) (rate(choreoai_errors_total[5m])) /
+            sum by (provider) (rate(choreoai_requests_total[5m]))
+          ) > 0.10
+        for: 5m
+        labels:
+          severity: warning
+          component: provider
+        annotations:
+          summary: "High error rate for provider {{ $labels.provider }}"
+          description: "Provider {{ $labels.provider }} has error rate above 10% (current: {{ $value | humanizePercentage }})"
+
+      # No requests in last 10 minutes (possible issue)
+      - alert: NoRequestsReceived
+        expr: rate(choreoai_requests_total[10m]) == 0
+        for: 10m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "No requests received"
+          description: "No requests have been received in the last 10 minutes"
+
+      # High token usage (cost alert)
+      - alert: HighTokenUsage
+        expr: rate(choreoai_tokens_total[1h]) > 1000000
+        for: 30m
+        labels:
+          severity: info
+          component: cost
+        annotations:
+          summary: "High token usage detected"
+          description: "Token usage is {{ $value }} tokens/sec (>1M tokens/hour)"
