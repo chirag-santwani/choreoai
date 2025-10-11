@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from app.config import settings
 from app.routers import chat, embeddings, models
+from app.middleware.auth import AuthenticationMiddleware
 from app.middleware.logging import LoggingMiddleware
 from app.middleware.metrics import MetricsMiddleware
 from app.utils.logger import setup_logging
@@ -26,9 +27,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Add custom middleware (order matters: metrics -> logging -> CORS)
+# Add custom middleware (order matters: metrics -> logging -> auth -> CORS)
 app.add_middleware(MetricsMiddleware)
 app.add_middleware(LoggingMiddleware)
+app.add_middleware(AuthenticationMiddleware)
 
 # Include routers
 app.include_router(chat.router, prefix="/v1", tags=["chat"])
