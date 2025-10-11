@@ -13,10 +13,6 @@ Requirements:
 
 import os
 from openai import OpenAI
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
 
 
 def main():
@@ -40,18 +36,19 @@ def main():
         # Fetch all models
         models = client.models.list()
 
-        # Categorize models by provider
+        # Categorize models by provider and type
         model_categories = {
             "gpt-": [],
             "claude-": [],
             "gemini-": [],
             "grok-": [],
+            "text-embedding": [],
             "other": []
         }
 
         for model in models.data:
             categorized = False
-            for prefix in ["gpt-", "claude-", "gemini-", "grok-"]:
+            for prefix in ["gpt-", "claude-", "gemini-", "grok-", "text-embedding"]:
                 if model.id.startswith(prefix):
                     model_categories[prefix].append(model.id)
                     categorized = True
@@ -88,6 +85,14 @@ def main():
             print(f"🚀 xAI Grok Models ({len(model_categories['grok-'])} available):")
             print("-" * 60)
             for model_id in sorted(model_categories["grok-"]):
+                print(f"  • {model_id}")
+            print()
+
+        # Display embedding models
+        if model_categories["text-embedding"]:
+            print(f"🔢 OpenAI Embedding Models ({len(model_categories['text-embedding'])} available):")
+            print("-" * 60)
+            for model_id in sorted(model_categories["text-embedding"]):
                 print(f"  • {model_id}")
             print()
 
